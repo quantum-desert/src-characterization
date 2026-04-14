@@ -315,7 +315,7 @@ function report = compute_asymmetric_CAR(t,c,t_trc,ri_trc,rs_trc)
 end
 
 % TESTED: THIS PRODUCES SAME HERALDING AS PREV
-function report = compute_heralding_eff(t,c,rs_trc,eta_i)
+function report = compute_heralding_eff(t,c,ri_trc,eta_s)
 % 
 
 
@@ -328,7 +328,7 @@ function report = compute_heralding_eff(t,c,rs_trc,eta_i)
     % eta_i = idler collection efficiency, including up to SNSPD
 
     % constants (S1)
-    bg_signal = 10e3; % counts
+    bg_idler = 10e3; % counts
 
     % sample rate
     sample_rate=t(2)-t(1); % ps
@@ -362,12 +362,19 @@ function report = compute_heralding_eff(t,c,rs_trc,eta_i)
     % calculate true coincidence rate
     c_true_r = max(c_r - c_acc_r,0); % counts / s  ; zero clamp
 
-    % signal rate, background corrected
-    s_net = mean(rs_trc) - bg_signal/T; % eta_s not needed, cancels out
+    % % signal rate, background corrected
+    % s_net = mean(rs_trc) - bg_signal/T; % eta_s not needed, cancels out
 
-    % calculate signal-conditioned idler herlading efficiency
-    % included: correction for accidentals + bg + signal / idler loss
-    h = (1/eta_i)*c_true_r/s_net; % probability idler clicks given signal clicked
+    
+    % % signal rate, background corrected
+    i_net = mean(ri_trc) - bg_idler/T; % eta_s not needed, cancels out
 
+    % % calculate signal-conditioned idler herlading efficiency
+    % % included: correction for accidentals + bg + signal / idler loss
+    % h = (1/eta_i)*c_true_r/s_net; % probability idler clicks given signal clicked
+
+
+    % comput idler-conditioned herlading efficiency
+    h = (1/eta_s)*c_true_r/i_net;
     report.h=h;
 end
