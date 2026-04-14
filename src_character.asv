@@ -95,13 +95,11 @@ disp(strcat('S2 Cacc: ',num2str(report_2_asym.Cacc)));
 %% Calculate heralding efficiency
 
 % measured 3/6/26 weekly report
-% eta_hs = 0.3131; % collection efficiency signal arm
-eta_hi1 = 0.34; % collection efficiency idler arm (src 1)
-eta_hi2 = 1; % collection efficiency idler arm (src 1) (unknown)
+eta_hs = 0.3131; % collection efficiency signal arm
+eta_hi = 0.255; % collection efficiency idler arm
 
-
-report_S1 = compute_heralding_eff(t1,c1,dsig1_trc,eta_hi1);
-report_S2 = compute_heralding_eff(t2,c2,dsig2_trc,eta_hi2);
+report_S1 = compute_heralding_eff(t1,c1,dsig1_trc,eta_hi);
+report_S2 = compute_heralding_eff(t2,c2,dsig2_trc,eta_hi);
 
 if(show_1)
 disp(strcat('S1 Heralding Efficiency=',num2str(round(1e2*report_S1.h,2)),'%'));
