@@ -327,7 +327,7 @@ function report = compute_heralding_eff(t,c,ri_trc,eta_s)
     % eta_i = idler collection efficiency, including up to SNSPD
 
     % constants (S1)
-    bg_idler = 10e3; % counts
+    bg_idler = 800; % counts / s
 
     % sample rate
     sample_rate=t(2)-t(1); % ps
@@ -366,7 +366,7 @@ function report = compute_heralding_eff(t,c,ri_trc,eta_s)
 
     
     % % signal rate, background corrected
-    i_net = mean(ri_trc) - bg_idler/T % eta_s not needed, cancels out
+    i_net = mean(ri_trc) - bg_idler; % 
 
     % % calculate signal-conditioned idler herlading efficiency
     % % included: correction for accidentals + bg + signal / idler loss
