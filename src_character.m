@@ -95,13 +95,12 @@ disp(strcat('S2 Cacc: ',num2str(report_2_asym.Cacc)));
 %% Calculate heralding efficiency
 
 % measured 3/6/26 weekly report
-% eta_hs = 0.3131; % collection efficiency signal arm
-eta_hi1 = 0.34; % collection efficiency idler arm (src 1)
-eta_hi2 = 1; % collection efficiency idler arm (src 1) (unknown)
+eta_hs1 = 0.37; % collection efficiency signal arm (src 1)
+eta_hs2 = 1; % collection efficiency signal arm (src 1) (unknown)
 
 
-report_S1 = compute_heralding_eff(t1,c1,dsig1_trc,eta_hi1);
-report_S2 = compute_heralding_eff(t2,c2,dsig2_trc,eta_hi2);
+report_S1 = compute_heralding_eff(t1,c1,didl1_trc,eta_hs1);
+report_S2 = compute_heralding_eff(t2,c2,didl2_trc,eta_hi2);
 
 if(show_1)
 disp(strcat('S1 Heralding Efficiency=',num2str(round(1e2*report_S1.h,2)),'%'));
@@ -367,7 +366,7 @@ function report = compute_heralding_eff(t,c,ri_trc,eta_s)
 
     
     % % signal rate, background corrected
-    i_net = mean(ri_trc) - bg_idler/T; % eta_s not needed, cancels out
+    i_net = mean(ri_trc) - bg_idler/T % eta_s not needed, cancels out
 
     % % calculate signal-conditioned idler herlading efficiency
     % % included: correction for accidentals + bg + signal / idler loss
