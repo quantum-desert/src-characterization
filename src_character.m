@@ -10,20 +10,21 @@ light_pink = '#FFC4D1';
 % automate file scan
 files = dir; 
 filenames = string({files.name});
-filenames = filenames(3:end); % remove dir navigation
+files = files(~[files.isdir]); % remove dir nav
+
+% select 4 most recent
+dates = [files.datenum];
+[~, order] = sort(dates, "descend");
+filenames = filenames(order);
+filenames = filenames(1:4);
+
 traceIdx = find(contains(filenames, 'Trace'));
 histIdx  = traceIdx-sign(2*traceIdx-3); % flip to other index
+
 fname_S1=filenames(histIdx);
 fname_S1_trc = filenames(traceIdx);
 
-
-% read in data
-% fname_S1='Bidirectional_histogram_2026-02-09_180834.txt';
-% fname_S2='Bidirectional_histogram_2026-01-15_152246_S2.txt';
 fname_S2=fname_S1;
-
-% fname_S1_trc = 'Bidirectional_histogram_Trace_2026-02-09_180837.txt';
-% fname_S2_trc = 'Bidirectional_histogram_Trace_2026-01-15_152251_S2.txt';
 fname_S2_trc=fname_S1_trc;
 
 % =zeros(1e4,2)
