@@ -1,7 +1,7 @@
 %% MAC EGEN src characterization
 % constants
 show_1=1;
-show_2=0;
+show_2=1;
 dark_green = '#4E6766';
 light_green = '#b4c292';
 dark_pink = '#EFAAC4';
@@ -11,14 +11,13 @@ light_pink = '#FFC4D1';
 files = dir; 
 files = files(~[files.isdir]); % remove dir nav
 files = files(~contains(string({files.name}), "ini", 'IgnoreCase', true));
-
 filenames = string({files.name});
 
-% select 4 most recent
+% select most recent from each type
 dates = [files.datenum];
 [~, order] = sort(dates, "descend");
 filenames = filenames(order);
-filenames = filenames(1:min(4,numel(filenames)));
+% filenames = filenames(1:min(10,numel(filenames)));
 
 traceIdxS1 = find(contains(filenames, 'Trace') & contains(filenames, 'S1'), 1, 'first');
 traceIdxS2 = find(contains(filenames, 'Trace') & contains(filenames, 'S2'), 1, 'first');
@@ -28,13 +27,10 @@ histIdxS2  = find(~contains(filenames, 'Trace') & contains(filenames, 'S2'), 1, 
 
 fname_S1 = filenames(histIdxS1);
 fname_S1_trc = filenames(traceIdxS1);
-% 
-% fname_S2 = filenames(histIdxS2);
-% fname_S2_trc = filenames(traceIdxS2);
 
-% TODO remove, just for testing
-fname_S2 = filenames(histIdxS1);
-fname_S2_trc = filenames(traceIdxS1);
+fname_S2 = filenames(histIdxS2);
+fname_S2_trc = filenames(traceIdxS2);
+
 
 disp(strcat('Reading S1 hist: ',fname_S1));
 disp(strcat('Reading S1 trace: ',fname_S1_trc));
@@ -83,12 +79,18 @@ didl2_trc=trc2(:,2); % channel 2, idler
 report_1_asym = compute_asymmetric_CAR(t1,c1,t1_trc,didl1_trc,dsig1_trc);
 report_2_asym = compute_asymmetric_CAR(t2,c2,t2_trc,didl2_trc,dsig2_trc);
 
-disp(strcat('S1 Asymmetric CAR=',num2str(round(report_1_asym.CAR_asym,3))))
-disp(strcat('S2 Cacc: ',num2str(report_1_asym.Cacc)));
+if(show_1)
+% disp(strcat('S1 Asymmetric CAR=',num2str(round(report_1_asym.CAR_asym,3))))
+% disp(strcat('S1 Cacc: ',num2str(report_1_asym.Cacc)));
+% disp(' ');
+end
 
-disp(' ');
-disp(strcat('S2 Asymmetric CAR=',num2str(round(report_2_asym.CAR_asym,3))))
-disp(strcat('S2 Cacc: ',num2str(report_2_asym.Cacc)));
+if(show_2)
+% disp(strcat('S2 Asymmetric CAR=',num2str(round(report_2_asym.CAR_asym,3))))
+% disp(strcat('S2 Cacc: ',num2str(report_2_asym.Cacc)));
+% disp(' ');
+
+end
 % disp(strcat('S2 S_i: ',num2str(report_2_asym.S_i)));
 % disp(strcat('S2 S_s: ',num2str(report_2_asym.S_s)));
 
@@ -96,18 +98,31 @@ disp(strcat('S2 Cacc: ',num2str(report_2_asym.Cacc)));
 
 % measured 3/6/26 weekly report
 eta_hs1 = 0.37; % collection efficiency signal arm (src 1)
-eta_hs2 = 1; % collection efficiency signal arm (src 1) (unknown)
+eta_hs2 = 0.366; % collection efficiency signal arm (src 2)
+eta_hi1 = 0.387; % collection efficiency of idler arm (src 1)
+eta_hi2 = 0.387; % collection efficiency of idler arm (src 1)
 
 
-report_S1 = compute_heralding_eff(t1,c1,didl1_trc,eta_hs1);
-report_S2 = compute_heralding_eff(t2,c2,didl2_trc,eta_hi2);
+
+
+report_S1 = compute_heralding_eff(t1,c1,didl1_trc,dsig1_trc,eta_hi1,eta_hs1);
+report_S2 = compute_heralding_eff(t2,c2,didl2_trc,dsig2_trc,eta_hi2,eta_hs2);
 
 if(show_1)
+disp(strcat('S1 peak rate =',num2str(round(1e2*report_S1.c_true_r,2))," CpS"));
+disp(strcat('S1 raw Heralding Efficiency=',num2str(round(1e2*report_S1.h_raw,2)),'%'));
 disp(strcat('S1 Heralding Efficiency=',num2str(round(1e2*report_S1.h,2)),'%'));
-end
+disp(strcat('S1 Asymmetric CAR=',num2str(round(report_1_asym.CAR_asym,3))))
+disp(strcat('S1 Cacc: ',num2str(report_1_asym.Cacc)));end
 
 if(show_2)
+disp(strcat('S2 peak rate =',num2str(round(1e2*report_S2.c_true_r,2))," CpS"));
+disp(strcat('S2 raw Heralding Efficiency=',num2str(round(1e2*report_S2.h_raw,2)),'%'));
 disp(strcat('S2 Heralding Efficiency=',num2str(round(1e2*report_S2.h,2)),'%'));
+disp(strcat('S2 Asymmetric CAR=',num2str(round(report_2_asym.CAR_asym,3))))
+disp(strcat('S2 Cacc: ',num2str(report_2_asym.Cacc)));
+
+
 end
 
 
@@ -120,10 +135,9 @@ if(show_1)
     % show coincidence counts
     plot(t1,c1,LineWidth=1.5,DisplayName='Counts S_1');
     % show peak window
-    xline(report_1.left_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (L)');
-    xline(report_1.right_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (R)');
-    xline(report_1.loc,color='m',LineWidth=1.5,DisplayName='Peak Loc.');
-    xlim([report_1.left_t-1e3 report_1.right_t+1e3]);
+    xline(report_1_asym.left_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (L)');
+    xline(report_1_asym.right_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (R)');
+    xline(report_1_asym.loc,color='m',LineWidth=1.5,DisplayName='Peak Loc.');
 
     % % show bg window
     % xline(t1(report_1.start_bg_idx),color='b',LineWidth=1.5,DisplayName='BG Integration Boundary (L)');
@@ -134,18 +148,18 @@ if(show_2)
     % show coincidence counts
     plot(t2,c2,LineWidth=1.5,DisplayName='Counts S_2');
     % show peak window
-    xline(report_2.left_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (L)');
-    xline(report_2.right_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (R)');
-    xline(report_2.loc,color='m',LineWidth=1.5,DisplayName='Peak Loc.');
+    xline(report_2_asym.left_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (L)');
+    xline(report_2_asym.right_t,LineWidth=1.5,DisplayName='Peak Integration Boundary (R)');
+    xline(report_2_asym.loc,color='m',LineWidth=1.5,DisplayName='Peak Loc.');
 
     % % show bg window
-    xline(t2(report_2.start_bg_idx),color='b',LineWidth=1.5,DisplayName='BG Integration Boundary (L)');
-    xline(t2(report_2.Nbg+report_2.start_bg_idx),color='b',LineWidth=1.5,DisplayName='BG Integration Boundary (R)');
-    xlim([report_2.left_t-1e3 report_2.right_t+1e3]);
+    % xline(t2(report_2_asym.start_bg_idx),color='b',LineWidth=1.5,DisplayName='BG Integration Boundary (L)');
+    % xline(t2(report_2_asym.Nbg+report_2_asym.start_bg_idx),color='b',LineWidth=1.5,DisplayName='BG Integration Boundary (R)');
 
 
 end
 
+xlim([min(report_2_asym.left_t,report_1_asym.left_t)-1e3 max(report_2_asym.right_t,report_1_asym.right_t)+1e3]);
 
 legend;
 xlabel('Time Diff (ps)'); ylabel('Counts');
@@ -297,7 +311,7 @@ function report = compute_asymmetric_CAR(t,c,t_trc,ri_trc,rs_trc)
 
     % calculate rate / rate
     T=10; % (s), integration time
-    Herald = (r.C_pk/T)/(S_s);
+    Herald = (r.C_pk/T)/(S_i);
 
     % build report
     report.Cpk = r.C_pk;
@@ -311,10 +325,11 @@ function report = compute_asymmetric_CAR(t,c,t_trc,ri_trc,rs_trc)
     report.tau_c = tau_c;
     report.CAR_asym = CAR_asym;
     report.h = Herald;
+    report.loc = r.loc;
 end
 
 % TESTED: THIS PRODUCES SAME HERALDING AS PREV
-function report = compute_heralding_eff(t,c,ri_trc,eta_s)
+function report = compute_heralding_eff(t,c,ri_trc,rs_trc,eta_i,eta_s)
 % 
 
 
@@ -328,6 +343,8 @@ function report = compute_heralding_eff(t,c,ri_trc,eta_s)
 
     % constants (S1)
     bg_idler = 800; % counts / s
+    bg_signal = 800; % counts / s
+
 
     % sample rate
     sample_rate=t(2)-t(1); % ps
@@ -356,24 +373,32 @@ function report = compute_heralding_eff(t,c,ri_trc,eta_s)
     c_acc_r = C_acc/T; % counts/s
 
     % coincidence count rate basis
-    c_r = r.C_pk/T; % counts/s
+    c_r = r.C_pk/T;  % counts/s
 
     % calculate true coincidence rate
     c_true_r = max(c_r - c_acc_r,0); % counts / s  ; zero clamp
 
     % % signal rate, background corrected
-    % s_net = mean(rs_trc) - bg_signal/T; % eta_s not needed, cancels out
+    s_net = mean(rs_trc) - bg_signal/T; % eta_s not needed, cancels out
 
     
     % % signal rate, background corrected
-    i_net = mean(ri_trc) - bg_idler; % 
+    i_net = (mean(ri_trc) - bg_idler); % 
 
-    % % calculate signal-conditioned idler herlading efficiency
+    % % calculate signal-conditioned idler heralding efficiency
     % % included: correction for accidentals + bg + signal / idler loss
     % h = (1/eta_i)*c_true_r/s_net; % probability idler clicks given signal clicked
 
+    % raw
+    h_raw = c_true_r/s_net; % probability idler clicks given signal clicked
+    h = h_raw / eta_i;
+
 
     % comput idler-conditioned herlading efficiency
-    h = (1/eta_s)*c_true_r/i_net;
-    report.h=h;
+    % h = (1/eta_s)*c_true_r/i_net;
+    report.h_raw = h_raw;
+    report.h = h;
+    report.c_true_r = c_true_r;
+    report.c_acc_r = c_acc_r;
+    report.CAR = c_true_r / c_acc_r;
 end
